@@ -29,6 +29,7 @@
     private void InitializeComponent()
     {
       this.components = new System.ComponentModel.Container();
+      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EasyNote));
       this.TabControl = new System.Windows.Forms.TabControl();
       this.tabPage1 = new System.Windows.Forms.TabPage();
       this.saveTimer = new System.Windows.Forms.Timer(this.components);
@@ -113,6 +114,7 @@
       this.ClientSize = new System.Drawing.Size(299, 303);
       this.Controls.Add(this.TabControl);
       this.Controls.Add(this.menu);
+      this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
       this.KeyPreview = true;
       this.Name = "EasyNote";
       this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;

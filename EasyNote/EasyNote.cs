@@ -10,7 +10,7 @@ namespace EasyNoteNS
 {
   public partial class EasyNote : Form
   {
-    private string notesPath = Environment.GetEnvironmentVariable("UserProfile") + @"\AppData\Local\EasyNote\";
+    private string notesPath = $"{Environment.ExpandEnvironmentVariables("%appdata%")}\\EasyNote";
     private int savePeriod = 3000;
     private string activeTabName = "";
 
@@ -27,13 +27,13 @@ namespace EasyNoteNS
       InitializeComponent();
       if (!RegControls.Init())
       {
-        RegControls.Set("NotesPath", Environment.GetEnvironmentVariable("UserProfile") + @"\AppData\Local\EasyNote\");
+        RegControls.Set("NotesPath", notesPath);
         RegControls.Set("ActiveTabName", "");
         RegControls.Set("FormX", Location.X);
         RegControls.Set("FormY", Location.Y);
         RegControls.Set("FormWidth", Width);
         RegControls.Set("FormHeight", Height);
-        RegControls.Set("SavePeriod", 3000);
+        RegControls.Set("SavePeriod", savePeriod);
       }
       else
       {

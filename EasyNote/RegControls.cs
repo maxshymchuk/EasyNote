@@ -1,4 +1,4 @@
-﻿using System.Windows.Forms;
+﻿using System.Reflection;
 using Microsoft.Win32;
 
 namespace EasyNoteNS
@@ -10,7 +10,7 @@ namespace EasyNoteNS
 
     public static bool Init()
     {
-      autorun.SetValue("EasyNote", @Application.ExecutablePath);
+      //autorun.SetValue("EasyNote", Assembly.GetExecutingAssembly().Location);
 
       key = Registry.CurrentUser.OpenSubKey(@"Software\EasyNote", true);
 

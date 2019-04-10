@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 public enum ResultMode
@@ -42,6 +43,21 @@ namespace EasyNoteNS
     private void Prompt_FormClosed(object sender, FormClosedEventArgs e)
     {
       _delegate(TextBox.Text, resultMode);
+    }
+
+    private void TextBox_TextChanged(object sender, EventArgs e)
+    {
+      if (Regex.Match(TextBox.Text, @"\p{IsCyrillic}|\p{IsCyrillicSupplement}").Success)
+      {
+        ToolTip tt = new ToolTip();
+        tt.ToolTipTitle = "Warning";
+        tt.Show("Only english letters allowed", TextBox, 0, TextBox.Size.Height, 1000);
+        ConfirmButton.Enabled = false;
+      }
+      else
+      {
+        ConfirmButton.Enabled = true;
+      }
     }
   }
 }

@@ -10,7 +10,7 @@ namespace EasyNoteNS
 
     public static bool Init()
     {
-      //autorun.SetValue("EasyNote", Assembly.GetExecutingAssembly().Location);
+      autorun.SetValue("EasyNote", Assembly.GetExecutingAssembly().Location);
 
       key = Registry.CurrentUser.OpenSubKey(@"Software\EasyNote", true);
 

@@ -55,6 +55,9 @@
     <Compile Include="EasyNote.Designer.cs">
       <DependentUpon>EasyNote.cs</DependentUpon>
     </Compile>
+    <Compile Include="Memo.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Prompt.cs">
       <SubType>Form</SubType>

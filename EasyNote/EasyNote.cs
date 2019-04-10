@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EasyNote;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -15,16 +16,17 @@ namespace EasyNoteNS
     private string activeTabName = "";
 
     private const string FILE_EXT = ".txt";
+    private const char UNSAVED_MARK = '*';
+    private const char SAVED_MARK = ' ';
 
     private string[] fileList = null;
     private List<TabPage> tabList = new List<TabPage>();
-    private List<RichTextBox> memoList = new List<RichTextBox>();
-
-    private Panel loginForm = null;
+    private List<Memo> memoList = new List<Memo>();
 
     public EasyNote()
     {
       InitializeComponent();
+      //setEnvVar();
       if (!RegControls.Init())
       {
         RegControls.Set("NotesPath", notesPath);
@@ -42,7 +44,7 @@ namespace EasyNoteNS
         savePeriod = RegControls.Get("SavePeriod");
         Location = new Point(
           RegControls.Get("FormX"),
-          RegControls.Get("FormY")       
+          RegControls.Get("FormY")
         );
         Size = new Size(
           RegControls.Get("FormWidth"),
@@ -50,8 +52,10 @@ namespace EasyNoteNS
         );
       }
 
-      //if (!Directory.Exists(notesPath)) Directory.CreateDirectory(notesPath);
-      //Login login = new Login(tabControl1.TabPages[0]);
+      if (!Directory.Exists(notesPath))
+      {
+        Directory.CreateDirectory(notesPath);
+      }
     }
 
     private void OnPromptResult(string tabName, ResultMode resultMode)
@@ -68,7 +72,7 @@ namespace EasyNoteNS
             Close();
             break;
           }
-          TabControl.SelectedTab = TabControl.TabPages[TabControl.TabCount - 2];
+          TabControl.SelectedTab = tabList.Find(t => extractFileName(t.Text) == activeTabName) ?? TabControl.TabPages[0];
           break;
       }
     }
@@ -87,33 +91,43 @@ namespace EasyNoteNS
           Parent = TabControl
         };
       }
-      tab.Text = tabName;
+      tab.Padding = new Padding(3);
+      tab.BackColor = Color.White;
+      tab.Text = $"{tabName}{SAVED_MARK}";
 
       tabList.Add(tab);
 
       TabPage newTab = new TabPage();
       newTab.Parent = TabControl;
+      //newTab.BackColor = Color.Blue;
       newTab.Text = "+ new";
 
       TabControl.SelectedTab = tab;
 
-      RichTextBox memo = new RichTextBox()
+      Memo memo = new Memo()
       {
         Parent = tab,
         Dock = DockStyle.Fill,
         BorderStyle = BorderStyle.None,
         Name = "memo"
       };
-      memo.KeyDown += memo_KeyDown;
-      memo.LoadFile($"{notesPath}\\{tabName}{FILE_EXT}", RichTextBoxStreamType.UnicodePlainText);
+      memo.TextChanged += memo_TextChanged;
+      memo.LoadFile($"{notesPath}\\{extractFileName(tabName)}{FILE_EXT}", RichTextBoxStreamType.UnicodePlainText);
       memo.Focus();
 
       memoList.Add(memo);
     }
 
-    private void createLoginForm()
+    private void setEnvVar()
     {
-
+      const string name = "Path";
+      string location = Environment.CurrentDirectory;
+      string pathvar = Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.User);
+      if (!pathvar.Split(';').Contains(location))
+      {
+        string value = pathvar + $";{location}";
+        Environment.SetEnvironmentVariable(name, value, EnvironmentVariableTarget.User);
+      }
     }
 
     private void tabControl1_Selecting(object sender, TabControlCancelEventArgs e)
@@ -121,105 +135,95 @@ namespace EasyNoteNS
       if (TabControl.SelectedIndex == TabControl.TabCount - 1)
       {
         new Prompt("New tab name", new PromptResult(OnPromptResult));
-        Text = "EasyNote *";
+      }
+      else
+      {
+        RegControls.Set("ActiveTabName", extractFileName(TabControl.SelectedTab.Text));
       }
     }
 
-    private void memo_KeyDown(object sender, KeyEventArgs e)
+    private void memo_TextChanged(object sender, EventArgs e)
     {
-      Text = "EasyNote *";
+      Memo memo = (sender as Memo);
+      if (memo.isSaved)
+      {
+        (memo.Parent as TabPage).Text = $"{extractFileName((memo.Parent as TabPage).Text)}{UNSAVED_MARK}";
+      }
+      memo.isSaved = false;
+    }
+
+    private string extractFileName(string s)
+    {
+      return s[s.Length - 1] == SAVED_MARK || s[s.Length - 1] == UNSAVED_MARK ? s.Substring(0, s.Length - 1) : s;
     }
 
     private void saveTimer_Tick(object sender, EventArgs e)
     {
-      foreach (RichTextBox memo in memoList)
+
+      foreach (Memo memo in memoList)
       {
-         memo.SaveFile($"{notesPath}\\{memo.Parent.Text}{FILE_EXT}", RichTextBoxStreamType.UnicodePlainText);
+        if (!memo.isSaved)
+        {
+          string fileName = extractFileName(memo.Parent.Text);
+          memo.SaveFile($"{notesPath}\\{fileName}{FILE_EXT}", RichTextBoxStreamType.UnicodePlainText);
+          (memo.Parent as TabPage).Text = $"{fileName}{SAVED_MARK}";
+          memo.isSaved = true;
+        }
       }
       if (WindowState != FormWindowState.Minimized)
       {
         SaveSettings();
       }
-
-      Text = "EasyNote";
     }
 
     private void SaveSettings()
     {
-      RegControls.Set("NotesPath", notesPath);
-      RegControls.Set("ActiveTabName", TabControl.SelectedTab.Text);
+      //RegControls.Set("NotesPath", notesPath);
+      //RegControls.Set("ActiveTabName", TabControl.SelectedTab.Text);
       RegControls.Set("FormX", Location.X);
       RegControls.Set("FormY", Location.Y);
       RegControls.Set("FormWidth", Width);
       RegControls.Set("FormHeight", Height);
-      RegControls.Set("SavePeriod", savePeriod);
+      //RegControls.Set("SavePeriod", savePeriod);
     }
 
     private void tabControl1_MouseClick(object sender, MouseEventArgs e)
     {
-      TabControl tabControl = sender as TabControl;
-      var tabs = tabControl.TabPages;
-      TabPage tab = tabs.Cast<TabPage>()
-        .Where((t, i) => tabControl.GetTabRect(i).Contains(e.Location))
-        .First(); // clicked tab
-
-      RichTextBox memo = tab.Controls.Find("memo", false).FirstOrDefault() as RichTextBox;
-      memoList.Remove(memo);
-
-      if (e.Button == MouseButtons.Middle && ModifierKeys == Keys.Shift)
-      {
-        File.Delete($"{notesPath}\\{tab.Text}{FILE_EXT}");
-      }
-
       if (e.Button == MouseButtons.Middle)
       {
+        TabControl tabControl = sender as TabControl;
+        var tabs = tabControl.TabPages;
+        TabPage tab = tabs.Cast<TabPage>()
+          .Where((t, i) => tabControl.GetTabRect(i).Contains(e.Location))
+          .First(); // clicked tab
+        if (ModifierKeys == Keys.Shift)
+        {
+          File.Delete($"{notesPath}\\{extractFileName(tab.Text)}{FILE_EXT}");
+        }
         tabs.Remove(tabs.Cast<TabPage>()
-            .Where((t, i) => tabControl.GetTabRect(i).Contains(e.Location))
-            .First());
+          .Where((t, i) => tabControl.GetTabRect(i).Contains(e.Location))
+          .First());
+        Memo memo = tab.Controls.Find("memo", false).FirstOrDefault() as Memo;
+        memoList.Remove(memo);
+        tabList.Remove(tab);
       }
-
-      tabList.Remove(tab);
-    }
-
-    private void button1_Click(object sender, EventArgs e)
-    {
-      //Settings settings = new Settings(new EasyNote());
     }
 
     private void EasyNote_KeyDown(object sender, KeyEventArgs e)
     {
-      if (e.KeyCode == Keys.F1)
+      switch (e.KeyCode)
       {
-        menu.Visible = !menu.Visible;
+        case Keys.F1:
+          break;
+        case Keys.F2:
+          break;
       }
-    }
-
-    private void login(string password)
-    {
-      bool flag = false;
-      if (password == "123")
-      {
-        flag = true;
-        FormBorderStyle = FormBorderStyle.Sizable;
-
-      }
-      TabControl.Visible = flag;
-      menu.Visible = flag;
-      KeyPreview = flag;
-      loginForm.Visible = !flag;
-      loginForm.Location = new Point((ClientSize.Width - loginForm.Width) / 2, (ClientSize.Height - loginForm.Height) / 2);
-      FormBorderStyle = FormBorderStyle.FixedSingle;
-    }
-
-    private void button2_Click(object sender, EventArgs e)
-    {
-      login("");
     }
 
     private void EasyNote_Load(object sender, EventArgs e)
     {
       fileList = Directory.GetFiles(notesPath, $"*{FILE_EXT}");
-      if (fileList == null || fileList.Length == 0)
+      if (fileList == null)
       {
         new Prompt("Tab name", new PromptResult(OnPromptResult));
       }
@@ -231,7 +235,7 @@ namespace EasyNoteNS
         }
       }
 
-      TabControl.SelectedTab = tabList.Find(t => t.Text == activeTabName) ?? TabControl.TabPages[0];
+      TabControl.SelectedTab = tabList.Find(t => extractFileName(t.Text) == activeTabName) ?? TabControl.TabPages[0];
     }
   }
 }

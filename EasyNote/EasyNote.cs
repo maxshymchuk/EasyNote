@@ -72,7 +72,7 @@ namespace EasyNoteNS
             Close();
             break;
           }
-          TabControl.SelectedTab = tabList.Find(t => extractFileName(t.Text) == activeTabName) ?? TabControl.TabPages[0];
+          TabControl.SelectedTab = tabList.Find(t => ExtractFileName(t.Text) == activeTabName) ?? TabControl.TabPages[0];
           break;
       }
     }
@@ -106,19 +106,20 @@ namespace EasyNoteNS
 
       Memo memo = new Memo()
       {
+        AcceptsTab = true,
         Parent = tab,
         Dock = DockStyle.Fill,
         BorderStyle = BorderStyle.None,
         Name = "memo"
       };
-      memo.TextChanged += memo_TextChanged;
-      memo.LoadFile($"{notesPath}\\{extractFileName(tabName)}{FILE_EXT}", RichTextBoxStreamType.UnicodePlainText);
+      memo.TextChanged += Memo_TextChanged;
+      memo.LoadFile($"{notesPath}\\{ExtractFileName(tabName)}{FILE_EXT}", RichTextBoxStreamType.UnicodePlainText);
       memo.Focus();
 
       memoList.Add(memo);
     }
 
-    private void setEnvVar()
+    private void SetEnvVar()
     {
       const string name = "Path";
       string location = Environment.CurrentDirectory;
@@ -130,7 +131,7 @@ namespace EasyNoteNS
       }
     }
 
-    private void tabControl1_Selecting(object sender, TabControlCancelEventArgs e)
+    private void TabControl1_Selecting(object sender, TabControlCancelEventArgs e)
     {
       if (TabControl.SelectedIndex == TabControl.TabCount - 1)
       {
@@ -138,33 +139,34 @@ namespace EasyNoteNS
       }
       else
       {
-        RegControls.Set("ActiveTabName", extractFileName(TabControl.SelectedTab.Text));
+        RegControls.Set("ActiveTabName", ExtractFileName(TabControl.SelectedTab.Text));
       }
     }
 
-    private void memo_TextChanged(object sender, EventArgs e)
+    private void Memo_TextChanged(object sender, EventArgs e)
     {
       Memo memo = (sender as Memo);
       if (memo.isSaved)
       {
-        (memo.Parent as TabPage).Text = $"{extractFileName((memo.Parent as TabPage).Text)}{UNSAVED_MARK}";
+        (memo.Parent as TabPage).Text = $"{ExtractFileName((memo.Parent as TabPage).Text)}{UNSAVED_MARK}";
       }
       memo.isSaved = false;
     }
 
-    private string extractFileName(string s)
+    private string ExtractFileName(string s)
     {
-      return s[s.Length - 1] == SAVED_MARK || s[s.Length - 1] == UNSAVED_MARK ? s.Substring(0, s.Length - 1) : s;
+      int c = s.Length - 1;
+      return s[c] == SAVED_MARK || s[c] == UNSAVED_MARK ? s.Substring(0, c) : s;
     }
 
-    private void saveTimer_Tick(object sender, EventArgs e)
+    private void SaveTimer_Tick(object sender, EventArgs e)
     {
 
       foreach (Memo memo in memoList)
       {
         if (!memo.isSaved)
         {
-          string fileName = extractFileName(memo.Parent.Text);
+          string fileName = ExtractFileName(memo.Parent.Text);
           memo.SaveFile($"{notesPath}\\{fileName}{FILE_EXT}", RichTextBoxStreamType.UnicodePlainText);
           (memo.Parent as TabPage).Text = $"{fileName}{SAVED_MARK}";
           memo.isSaved = true;
@@ -187,7 +189,7 @@ namespace EasyNoteNS
       //RegControls.Set("SavePeriod", savePeriod);
     }
 
-    private void tabControl1_MouseClick(object sender, MouseEventArgs e)
+    private void TabControl1_MouseClick(object sender, MouseEventArgs e)
     {
       if (e.Button == MouseButtons.Middle)
       {
@@ -198,7 +200,7 @@ namespace EasyNoteNS
           .First(); // clicked tab
         if (ModifierKeys == Keys.Shift)
         {
-          File.Delete($"{notesPath}\\{extractFileName(tab.Text)}{FILE_EXT}");
+          File.Delete($"{notesPath}\\{ExtractFileName(tab.Text)}{FILE_EXT}");
         }
         tabs.Remove(tabs.Cast<TabPage>()
           .Where((t, i) => tabControl.GetTabRect(i).Contains(e.Location))
@@ -235,7 +237,7 @@ namespace EasyNoteNS
         }
       }
 
-      TabControl.SelectedTab = tabList.Find(t => extractFileName(t.Text) == activeTabName) ?? TabControl.TabPages[0];
+      TabControl.SelectedTab = tabList.Find(t => ExtractFileName(t.Text) == activeTabName) ?? TabControl.TabPages[0];
     }
   }
 }

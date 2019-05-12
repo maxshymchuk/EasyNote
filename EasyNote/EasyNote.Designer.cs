@@ -48,8 +48,8 @@
             this.TabControl.SelectedIndex = 0;
             this.TabControl.Size = new System.Drawing.Size(299, 303);
             this.TabControl.TabIndex = 0;
-            this.TabControl.Selecting += new System.Windows.Forms.TabControlCancelEventHandler(this.tabControl1_Selecting);
-            this.TabControl.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tabControl1_MouseClick);
+            this.TabControl.Selecting += new System.Windows.Forms.TabControlCancelEventHandler(this.TabControl1_Selecting);
+            this.TabControl.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TabControl1_MouseClick);
             // 
             // tabPage1
             // 
@@ -66,7 +66,7 @@
             // 
             this.saveTimer.Enabled = true;
             this.saveTimer.Interval = 3000;
-            this.saveTimer.Tick += new System.EventHandler(this.saveTimer_Tick);
+            this.saveTimer.Tick += new System.EventHandler(this.SaveTimer_Tick);
             // 
             // EasyNote
             // 

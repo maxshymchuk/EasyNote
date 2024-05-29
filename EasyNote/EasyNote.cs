@@ -15,6 +15,7 @@ namespace EasyNoteNS
     private int savePeriod = 3000;
     private string activeTabName = "";
 
+    private const string DEFAULT_NAME = "Note";
     private const string FILE_EXT = ".txt";
     private const char UNSAVED_MARK = '*';
     private const char SAVED_MARK = ' ';
@@ -30,7 +31,7 @@ namespace EasyNoteNS
       if (!RegControls.Init())
       {
         RegControls.Set("NotesPath", notesPath);
-        RegControls.Set("ActiveTabName", "");
+        RegControls.Set("ActiveTabName", DEFAULT_NAME);
         RegControls.Set("FormX", Location.X);
         RegControls.Set("FormY", Location.Y);
         RegControls.Set("FormWidth", Width);
@@ -55,6 +56,7 @@ namespace EasyNoteNS
       if (!Directory.Exists(notesPath))
       {
         Directory.CreateDirectory(notesPath);
+        File.CreateText($"{notesPath}\\{DEFAULT_NAME}{FILE_EXT}").Dispose();
       }
     }
 
@@ -67,7 +69,7 @@ namespace EasyNoteNS
           CreateTab(tabName);
           break;
         case ResultMode.Cancel:
-          if (tabList.Count == 1)
+          if (TabControl.TabCount == 1)
           {
             Close();
             break;
@@ -135,7 +137,7 @@ namespace EasyNoteNS
     {
       if (TabControl.SelectedIndex == TabControl.TabCount - 1)
       {
-        new Prompt("New tab name", new PromptResult(OnPromptResult));
+        new Prompt("New tab name", tabList.Select(tab => tab.Text.Substring(0, tab.Text.Length - 1)).ToArray(), new PromptResult(OnPromptResult));
       }
       else
       {
@@ -211,26 +213,15 @@ namespace EasyNoteNS
       }
     }
 
-    private void EasyNote_KeyDown(object sender, KeyEventArgs e)
-    {
-      switch (e.KeyCode)
-      {
-        case Keys.F1:
-          break;
-        case Keys.F2:
-          break;
-      }
-    }
-
     private void EasyNote_Load(object sender, EventArgs e)
     {
       fileList = Directory.GetFiles(notesPath, $"*{FILE_EXT}");
-      if (fileList == null)
-      {
-        new Prompt("Tab name", new PromptResult(OnPromptResult));
-      }
-      else
-      {
+        if (fileList == null)
+        {
+            new Prompt("Tab name", tabList.Select(tab => tab.Text.Substring(0, tab.Text.Length - 1)).ToArray(), new PromptResult(OnPromptResult));
+        }
+        else
+        {
         foreach (string filePath in fileList)
         {
           CreateTab(Path.GetFileNameWithoutExtension(filePath));

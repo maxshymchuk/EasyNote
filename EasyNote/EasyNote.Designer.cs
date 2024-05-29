@@ -59,7 +59,7 @@
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage1.Size = new System.Drawing.Size(291, 277);
             this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "tabPage1";
+            this.tabPage1.Text = "Note";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // saveTimer
@@ -80,7 +80,6 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "EasyNote";
             this.Load += new System.EventHandler(this.EasyNote_Load);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.EasyNote_KeyDown);
             this.TabControl.ResumeLayout(false);
             this.ResumeLayout(false);
 

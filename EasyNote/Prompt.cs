@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -13,11 +14,13 @@ namespace EasyNoteNS
   public partial class Prompt : Form
   {
     private ResultMode resultMode = ResultMode.Cancel;
+    private string[] usedTitles;
     private PromptResult _delegate;
-    public Prompt(string title, PromptResult sender)
+    public Prompt(string title, string[] titles, PromptResult sender)
     {
       InitializeComponent();
       _delegate = sender;
+      usedTitles = titles;
 
       Text = title;
       ClientSize = new Size(260, 50);
@@ -33,7 +36,7 @@ namespace EasyNoteNS
 
     private void GetNewTabName(object sender, EventArgs e)
     {
-      if (TextBox.Text != "")
+      if (TextBox.Text != "" && !usedTitles.Contains(TextBox.Text))
       {
         resultMode = ResultMode.Confirm;
         Close();
@@ -43,21 +46,6 @@ namespace EasyNoteNS
     private void Prompt_FormClosed(object sender, FormClosedEventArgs e)
     {
       _delegate(TextBox.Text, resultMode);
-    }
-
-    private void TextBox_TextChanged(object sender, EventArgs e)
-    {
-      if (Regex.Match(TextBox.Text, @"\p{IsCyrillic}|\p{IsCyrillicSupplement}").Success)
-      {
-        ToolTip tt = new ToolTip();
-        tt.ToolTipTitle = "Warning";
-        tt.Show("Only english letters allowed", TextBox, 0, TextBox.Size.Height, 1000);
-        ConfirmButton.Enabled = false;
-      }
-      else
-      {
-        ConfirmButton.Enabled = true;
-      }
     }
   }
 }

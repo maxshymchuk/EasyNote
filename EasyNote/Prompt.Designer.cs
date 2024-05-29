@@ -41,7 +41,6 @@
       this.TextBox.Name = "TextBox";
       this.TextBox.Size = new System.Drawing.Size(150, 20);
       this.TextBox.TabIndex = 0;
-      this.TextBox.TextChanged += new System.EventHandler(this.TextBox_TextChanged);
       // 
       // ConfirmButton
       // 
